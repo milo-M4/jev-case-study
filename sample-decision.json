@@ -1,0 +1,14 @@
+{
+  "_note": "Sanitized sample routing decision from decisions.jsonl, November 3, 2026, 08:02 CT. State preview omitted; all values as logged. (White paper Appendix B.)",
+  "tier": "expert", "provider": "openrouter",
+  "model": "deepseek/deepseek-v4.1-flash",
+  "escalated_from": null,
+  "confidence": 0.5, "security_probability": 0.93,
+  "probabilities": {"trivial": 0.23, "simple": 0.02, "standard": 0.02,
+                    "architecture": 0.07, "frontier": 0.08, "expert": 0.58},
+  "classify_ms": 249, "classify_error": null,
+  "routing_signals": {"minimum_tier": "expert",
+    "reasons": ["consequential_automation", "expert_troubleshooting"],
+    "repeated_tool_cycles": 1},
+  "estimated_prompt_tokens": 55256, "stream": true
+}

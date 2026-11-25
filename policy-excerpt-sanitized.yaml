@@ -1,0 +1,69 @@
+# jev-router policy — SANITIZED EXCERPT for publication
+# The two questions Jev answers on every routed request, the thresholds,
+# and the six tier definitions exactly as Jev reads them. Provider
+# endpoints, key handling, and residency configuration are omitted;
+# tier targets shown are the current profile (November 22, 2026).
+
+classifier:
+  model: jev-latest
+  timeout_seconds: 30
+  max_state_chars: 32000
+  instructions: >
+    Classify the complexity and risk of the user's request into exactly one tier.
+    Judge by what the request requires, not its length. Pick the LOWEST tier that
+    can plausibly answer correctly and safely.
+  security_question: >
+    Is this request security-critical or high-stakes, where a wrong answer is
+    costly — e.g. authentication, secrets/keys, payments, production data loss,
+    or a novel/ambiguous design with no safe default?
+
+confidence_threshold: 0.60   # below this, escalate the tier by one step
+security_threshold: 0.50     # security_critical >= this forces the expert tier
+default_tier: standard       # used if Jev is unreachable
+escalation_order: [trivial, simple, standard, architecture, frontier, expert]
+
+context_guard:
+  max_fraction: 0.70         # escalate when prompt estimate exceeds 70% of a tier's window
+local_timeout:
+  seconds: 180               # wall-clock deadline; escalate once to architecture
+
+tiers:
+  trivial:
+    target: Qwen3-4B-Instruct (local)
+    description: >
+      Trivial: formatting, renaming, a simple lookup, a one-line edit, or
+      chit-chat that needs no real reasoning.
+  simple:
+    target: Qwen3-8B (local)
+    description: >
+      Simple: a single-file edit, a clear and well-scoped bugfix, a short
+      explanation, or light code writing with an obvious approach.
+  standard:
+    target: Qwen3.6-35B-A3B (local)
+    description: >
+      Standard software work: multi-file coding, refactors, writing tests, or
+      moderate debugging that still has a clear direction.
+  architecture:
+    target: gpt-6.1-sol (Codex subscription lane)
+    description: >
+      Architecture or hard reasoning: system design, complex or multi-layer
+      debugging, cross-cutting changes, or problems needing broad context and
+      careful planning.
+  frontier:
+    target: gpt-6.1-sol (Codex subscription lane)
+    description: >
+      Frontier: hard reasoning that is costly to get wrong but recoverable —
+      cross-cutting design, multi-layer debugging, long-context analysis, or
+      ambiguous requirements with a plausible fallback.
+  expert:
+    target: gpt-6.1-sol (Codex subscription lane)
+    description: >
+      Expert: the most advanced work where a wrong answer is expensive and the
+      path is not obvious. Complex multi-file coding with intricate
+      interdependencies, root-cause system troubleshooting on live systems,
+      corrective repairs of broken infrastructure or automation, migrations and
+      refactors across services, or novel problems with no safe default.
+      Not for anything that is merely long, and not for a single bounded edit.
+
+fallback:
+  target: deepseek/deepseek-v4.1-flash (OpenRouter)   # failure fallback only
